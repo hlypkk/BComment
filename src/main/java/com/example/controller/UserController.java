@@ -2,9 +2,11 @@ package com.example.controller;
 
 import com.example.dto.LoginFormDTO;
 import com.example.dto.Result;
+import com.example.dto.UserDTO;
 import com.example.entity.UserInfo;
 import com.example.service.IUserInfoService;
 import com.example.service.IUserService;
+import com.example.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
@@ -31,8 +33,9 @@ public class UserController {
      */
     @PostMapping("code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
-        // TODO 发送短信验证码并保存验证码
-        return Result.fail("功能未完成");
+        //发送短信验证码并保存验证码
+
+        return userService.sendCode(phone,session);
     }
 
     /**
@@ -41,10 +44,13 @@ public class UserController {
      */
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session){
-        // TODO 实现登录功能
-        return Result.fail("功能未完成");
+        //实现登录功能
+        return userService.login(loginForm,session);
     }
-
+    @PostMapping("/loginForPassword")
+    public Result loginForPassword(@RequestBody LoginFormDTO loginForm, HttpSession session){
+        return userService.loginWithPassword(loginForm,session);
+    }
     /**
      * 登出功能
      * @return 无
@@ -57,8 +63,9 @@ public class UserController {
 
     @GetMapping("/me")
     public Result me(){
-        // TODO 获取当前登录的用户并返回
-        return Result.fail("功能未完成");
+        // 获取当前登录的用户并返回
+        UserDTO user = UserHolder.getUser();
+        return Result.ok(user);
     }
 
     @GetMapping("/info/{id}")

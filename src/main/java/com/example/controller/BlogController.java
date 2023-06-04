@@ -10,6 +10,7 @@ import com.example.service.IBlogService;
 import com.example.service.IUserService;
 import com.example.utils.SystemConstants;
 import com.example.utils.UserHolder;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
