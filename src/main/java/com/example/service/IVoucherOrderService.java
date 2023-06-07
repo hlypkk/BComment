@@ -2,6 +2,7 @@ package com.example.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.dto.Result;
 import com.example.entity.VoucherOrder;
 
 /**
@@ -10,5 +11,7 @@ import com.example.entity.VoucherOrder;
  * </p>
  */
 public interface IVoucherOrderService extends IService<VoucherOrder> {
+    Result seckillVoucher(Long voucherId);
 
+    Result createVoucherOrder(Long voucherId);
 }

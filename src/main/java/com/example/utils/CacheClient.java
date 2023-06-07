@@ -40,7 +40,7 @@ public class CacheClient {
      * @param time
      * @param unit
      */
-    public void setWithLogicalExpire(String key, Object value, Long time, TimeUnit unit) throws InterruptedException {
+    public void setWithLogicalExpire(String key, Object value, Long time, TimeUnit unit){
         RedisData redisData = new RedisData();
         redisData.setData(value);
         redisData.setExpireTime(LocalDateTime.now().plusSeconds(unit.toSeconds(time)));
@@ -64,7 +64,7 @@ public class CacheClient {
         String key = keyPrefix + id;
         //1，从redis查缓存
         String json = stringRedisTemplate.opsForValue().get(key);
-        //2，判断是否存在
+        //2，判断缓存是否存在
         if (StrUtil.isNotBlank(json)) {
             //2.1，存在则直接返回
             return JSONUtil.toBean(json, type);

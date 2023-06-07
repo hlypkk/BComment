@@ -91,9 +91,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .setIgnoreNullValue(true).
                         setFieldValueEditor((fieldName,fieldValue) -> fieldValue.toString()));
         //5.3,存储
-        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token , stringObjectMap);
+        String tokenKey = LOGIN_USER_KEY + token;
+        stringRedisTemplate.opsForHash().putAll(tokenKey , stringObjectMap);
         //5.4,设置token有效期
-        stringRedisTemplate.expire(LOGIN_USER_KEY + token , LOGIN_USER_TTL , TimeUnit.MINUTES);
+        stringRedisTemplate.expire(tokenKey , LOGIN_USER_TTL , TimeUnit.MINUTES);
         //6,返回token
         return Result.ok(token);
     }
@@ -129,9 +130,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .setIgnoreNullValue(true).
                         setFieldValueEditor((fieldName,fieldValue) -> fieldValue.toString()));
         //3.3,存储
-        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token , stringObjectMap);
+        String tokenKey = LOGIN_USER_KEY + token;
+        stringRedisTemplate.opsForHash().putAll(tokenKey , stringObjectMap);
         //3.4,设置token有效期
-        stringRedisTemplate.expire(LOGIN_USER_KEY + token , LOGIN_USER_TTL , TimeUnit.MINUTES);
+        stringRedisTemplate.expire(tokenKey , LOGIN_USER_TTL , TimeUnit.MINUTES);
         //4,返回token
         return Result.ok(token);
     }
