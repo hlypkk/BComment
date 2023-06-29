@@ -1,8 +1,10 @@
 package com.example.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.example.dto.LoginFormDTO;
 import com.example.dto.Result;
 import com.example.dto.UserDTO;
+import com.example.entity.User;
 import com.example.entity.UserInfo;
 import com.example.service.IUserInfoService;
 import com.example.service.IUserService;
@@ -10,6 +12,7 @@ import com.example.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -56,29 +59,46 @@ public class UserController {
      * @return 无
      */
     @PostMapping("/logout")
-    public Result logout(){
-        // TODO 实现登出功能
-        return Result.fail("功能未完成");
+    public Result logout(HttpServletRequest request){
+        return userService.logout(request);
     }
 
+    /**
+     * 通过id查询
+     * @param userId
+     * @return
+     */
+    @GetMapping("/{id}")
+    public Result queryUserById(@PathVariable("id") Long userId){
+        return userService.queryUserById(userId);
+    }
+    // 获取当前登录的用户并返回
     @GetMapping("/me")
     public Result me(){
-        // 获取当前登录的用户并返回
         UserDTO user = UserHolder.getUser();
         return Result.ok(user);
     }
 
+    /**
+     * 查询用户信息
+     * @param userId
+     * @return
+     */
     @GetMapping("/info/{id}")
     public Result info(@PathVariable("id") Long userId){
-        // 查询详情
-        UserInfo info = userInfoService.getById(userId);
-        if (info == null) {
-            // 没有详情，应该是第一次查看详情
-            return Result.ok();
-        }
-        info.setCreateTime(null);
-        info.setUpdateTime(null);
-        // 返回
-        return Result.ok(info);
+        return userService.info(userId);
+    }
+
+    /**
+     * 签到
+     * @return
+     */
+    @PostMapping("/sign")
+    public Result sign(){
+        return userService.sign();
+    }
+    @GetMapping("/sign/count")
+    public Result signCount(){
+        return userService.signCount();
     }
 }

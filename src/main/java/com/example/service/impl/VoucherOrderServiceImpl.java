@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.example.dto.Result;
 import com.example.entity.VoucherOrder;
 import com.example.mapper.VoucherOrderMapper;
+import com.example.service.ISeckillVoucherService;
 import com.example.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.utils.RedisIdWorker;
@@ -38,7 +39,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
     @Resource
-    private SeckillVoucherServiceImpl seckillVoucherService;
+    private ISeckillVoucherService seckillVoucherService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
     @Resource

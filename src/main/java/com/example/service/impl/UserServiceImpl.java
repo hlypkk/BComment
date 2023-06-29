@@ -10,16 +10,23 @@ import com.example.dto.LoginFormDTO;
 import com.example.dto.Result;
 import com.example.dto.UserDTO;
 import com.example.entity.User;
+import com.example.entity.UserInfo;
 import com.example.mapper.UserMapper;
+import com.example.service.IUserInfoService;
 import com.example.service.IUserService;
 import com.example.utils.RegexUtils;
+import com.example.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import static com.example.utils.RedisConstants.*;
@@ -35,6 +42,8 @@ import static com.example.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private IUserInfoService userInfoService;
     /**
      * 发送验证码
      * @param phone
@@ -136,6 +145,112 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringRedisTemplate.expire(tokenKey , LOGIN_USER_TTL , TimeUnit.MINUTES);
         //4,返回token
         return Result.ok(token);
+    }
+
+    /**
+     * 登出功能
+     * @param request
+     * @return
+     */
+    @Override
+    public Result logout(HttpServletRequest request) {
+        String token = request.getHeader("authorization");
+        String tokenKey = LOGIN_USER_KEY + token;
+        stringRedisTemplate.opsForHash().delete(tokenKey);
+        return Result.ok();
+    }
+
+    /**
+     * 查询用户详情
+     * @param userId
+     * @return
+     */
+    @Override
+    public Result info(Long userId) {
+        // 查询详情
+        UserInfo info = userInfoService.getById(userId);
+        if (info == null) {
+            // 没有详情，应该是第一次查看详情
+            return Result.ok();
+        }
+        info.setCreateTime(null);
+        info.setUpdateTime(null);
+        // 返回
+        return Result.ok(info);
+    }
+
+    /**
+     * 通过id查询
+     * @param userId
+     * @return
+     */
+    @Override
+    public Result queryUserById(Long userId) {
+        User user = getById(userId);
+        if (user == null){
+            return Result.ok();
+        }
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        return Result.ok(userDTO);
+    }
+
+    /**
+     * 签到
+     * @return
+     */
+    @Override
+    public Result sign() {
+        // 1.获取当前登录用户
+        Long userId = UserHolder.getUser().getId();
+        // 2.获取日期
+        LocalDateTime now = LocalDateTime.now();
+        // 3.拼接key
+        String keySuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY + userId + keySuffix;
+        // 4.获取今天是本月的第几天
+        int dayOfMonth = now.getDayOfMonth();
+        stringRedisTemplate.opsForValue().setBit(key , dayOfMonth - 1 , true);
+        return Result.ok();
+    }
+
+    @Override
+    public Result signCount() {
+        // 1.获取当前登录用户
+        Long userId = UserHolder.getUser().getId();
+        // 2.获取日期
+        LocalDateTime now = LocalDateTime.now();
+        // 3.拼接key
+        String keySuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY + userId + keySuffix;
+        // 4.获取今天是本月的第几天
+        int dayOfMonth = now.getDayOfMonth();
+        // 5.获取本月截止今天为止的所有的签到记录，返回的是一个十进制的数字 BITFIELD sign:5:202203 GET u14 0
+        List<Long> result = stringRedisTemplate.opsForValue().bitField(key,
+                BitFieldSubCommands.create().get
+                        (BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0));
+        if (result == null || result.isEmpty()){
+            // 没有任何签到结果
+            return Result.ok(0);
+        }
+        Long num = result.get(0);
+        if (num == null || num == 0){
+                return Result.ok(0);
+        }
+        // 6.循环遍历
+        int count = 0;
+        while (true){
+            // 6.1.让这个数字与1做与运算，得到数字的最后一个bit位  // 判断这个bit位是否为0
+            if ((num & 1) == 0){
+                // 如果为0，说明未签到，结束
+                break;
+            }else {
+                // 如果不为0，说明已签到，计数器+1
+                count++;
+            }
+            // 把数字右移一位，抛弃最后一个bit位，继续下一个bit位
+            count >>>= 1;
+        }
+        return Result.ok(count);
     }
 
     /**
