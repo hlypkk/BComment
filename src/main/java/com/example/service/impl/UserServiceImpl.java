@@ -213,6 +213,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return Result.ok();
     }
 
+    /**
+     * 签到统计
+     * @return
+     */
     @Override
     public Result signCount() {
         // 1.获取当前登录用户

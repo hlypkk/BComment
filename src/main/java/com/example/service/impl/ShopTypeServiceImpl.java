@@ -30,7 +30,7 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
     private StringRedisTemplate stringRedisTemplate;
 
     /**
-     * TODO 防止缓存穿透
+     * 查询缓存商铺
      * @return
      */
     @Override
